@@ -3,8 +3,8 @@ import random
 import matplotlib.pyplot as plt
 from collections import Counter
 from openai import OpenAI
-from anthropic import Anthropic
-import google.generativeai as genai
+# from anthropic import Anthropic
+# import google.generativeai as genai
 
 # ==============================
 # CONFIGURAÇÕES INICIAIS
