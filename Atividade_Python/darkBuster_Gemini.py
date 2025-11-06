@@ -10,7 +10,7 @@ import os
 api_key = os.getenv("GOOGLE_API_KEY")
 
 if not api_key:
-    print("❌ ERRO: GOOGLE_API_KEY não encontrada no ambiente!")
+    print("❌ ERRO: GEMINI_API_KEY não encontrada no ambiente!")
     exit(1)
 
 # Configura a API
