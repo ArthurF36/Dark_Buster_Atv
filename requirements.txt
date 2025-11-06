@@ -1,4 +1,4 @@
+requests
+openai
 google-generativeai
 anthropic
-openai
-matplotlib
