@@ -5,7 +5,6 @@ import json
 # ============================================
 # CONFIGURAÇÃO DA API GEMINI (v1beta REST)
 # ============================================
-
 api_key = os.getenv("GOOGLE_API_KEY")
 
 if not api_key:
@@ -18,7 +17,6 @@ endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:ge
 # ============================================
 # FUNÇÃO PARA BAIXAR HTML
 # ============================================
-
 def obter_html(url):
     try:
         resposta = requests.get(url, timeout=10)
@@ -31,7 +29,6 @@ def obter_html(url):
 # ============================================
 # FUNÇÃO PARA ANÁLISE COM JSON PADRÃO
 # ============================================
-
 def analisar_site(url):
     html = obter_html(url)
 
@@ -168,7 +165,6 @@ HTML analisado:
 # ============================================
 # EXECUÇÃO
 # ============================================
-
 if __name__ == "__main__":
     url = input("Digite a URL do site a ser analisado: ").strip()
     analisar_site(url)
