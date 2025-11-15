@@ -15,7 +15,6 @@ if not api_key:
 modelo = "gemini-2.5-flash"
 endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent?key={api_key}"
 
-
 # ============================================
 # FUNÇÃO PARA BAIXAR HTML
 # ============================================
@@ -29,33 +28,33 @@ def obter_html(url):
         print(f"❌ Erro ao acessar {url}: {e}")
         return None
 
-
 # ============================================
-# FUNÇÃO PARA ANALISAR HTML COM JSON PADRÃO
+# FUNÇÃO PARA ANÁLISE COM JSON PADRÃO
 # ============================================
 
 def analisar_site(url):
     html = obter_html(url)
+
+    # Se o HTML falhar, retornar JSON formal exigido pela atividade
     if not html:
-        print("❌ Não foi possível obter o HTML.")
+        fallback = {
+            "manipulative_design": False,
+            "patterns_detected": [],
+            "security_risks": [
+                "Não foi possível acessar o site ou o acesso foi bloqueado."
+            ],
+            "confidence_level": "baixa"
+        }
+        print(json.dumps(fallback, indent=2, ensure_ascii=False))
         return
 
     print(f"✅ HTML obtido com sucesso ({len(html)} caracteres).")
 
-    # 🔥 PROMPT JSON PURO — CORRIGIDO COM {html}
+    # Prompt no padrão exigido
     prompt = f"""
-Você é um sistema de análise especializado e deve responder SOMENTE com JSON PURO, sem markdown, sem explicações e sem texto fora do JSON.
+Você deve analisar o HTML abaixo e responder SOMENTE com um JSON válido.
 
-REGRAS IMPORTANTES:
-- NÃO use ```json
-- NÃO use ```
-- NÃO adicione texto antes ou depois do JSON
-- NÃO adicione comentários
-- NÃO adicione campos extras
-- Responda APENAS com um JSON puro válido
-
-Analise o HTML abaixo e produza exclusivamente o seguinte formato JSON:
-
+Formato obrigatório:
 {{
   "manipulative_design": true/false,
   "patterns_detected": [
@@ -70,6 +69,12 @@ Analise o HTML abaixo e produza exclusivamente o seguinte formato JSON:
   ],
   "confidence_level": "alta/média/baixa"
 }}
+
+REGRAS:
+- A resposta deve ser APENAS JSON.
+- Não use markdown.
+- Não coloque nada antes ou depois do JSON.
+- Não explique o resultado.
 
 HTML analisado:
 {html}
@@ -90,27 +95,79 @@ HTML analisado:
         print("Status da Gemini:", response.status_code)
 
         data = response.json()
-        print("\nResposta JSON bruta:\n", data)
+        print("\nResposta bruta:\n", data)
 
+        # ===============================
+        # TRATAMENTO DE RATE LIMIT (429)
+        # ===============================
+        if response.status_code == 429:
+            erro_msg = data.get("error", {}).get("message", "").lower() if "error" in data else ""
+
+            if "tokens per min" in erro_msg or "tpm" in erro_msg:
+                fallback = {
+                    "manipulative_design": False,
+                    "patterns_detected": [],
+                    "security_risks": [
+                        "A análise não pôde ser realizada porque o limite de tokens por minuto (TPM) da API Gemini foi atingido."
+                    ],
+                    "confidence_level": "baixa"
+                }
+            else:
+                fallback = {
+                    "manipulative_design": False,
+                    "patterns_detected": [],
+                    "security_risks": [
+                        "A análise não pôde ser realizada devido ao limite de requisições da API (rate limit)."
+                    ],
+                    "confidence_level": "baixa"
+                }
+
+            print(json.dumps(fallback, indent=2, ensure_ascii=False))
+            return
+
+        # ===============================
+        # TRATAMENTO DE RESPOSTAS VÁLIDAS
+        # ===============================
         if "candidates" in data:
             texto = data["candidates"][0]["content"]["parts"][0]["text"]
 
             print("\n🧠 JSON final:\n")
             print(texto)
 
-            # Validação do JSON
+            # Verifica se o JSON é válido
             try:
                 json.loads(texto)
                 print("\n✔ JSON válido!")
             except:
-                print("\n⚠ JSON inválido (IA pode ter adicionado texto extra).")
+                print("\n⚠ JSON inválido (IA pode ter quebrado o formato).")
 
         else:
-            print("⚠️ Resposta fora do padrão.")
+            print("⚠ Resposta fora do padrão.")
+            fallback = {
+                "manipulative_design": False,
+                "patterns_detected": [],
+                "security_risks": [
+                    "A análise não pôde ser realizada; resposta fora do padrão da API Gemini."
+                ],
+                "confidence_level": "baixa"
+            }
+            print(json.dumps(fallback, indent=2, ensure_ascii=False))
 
     except Exception as e:
         print("❌ ERRO ao enviar para Gemini:", e)
+        fallback = {
+            "manipulative_design": False,
+            "patterns_detected": [],
+            "security_risks": [
+                "Erro inesperado ao chamar a API Gemini."
+            ],
+            "confidence_level": "baixa"
+        }
+        print(json.dumps(fallback, indent=2, ensure_ascii=False))
 
+# ============================================
+# EXECUÇÃO
+# ============================================
 
 if __name__ == "__main__":
     url = input("Digite a URL do site a ser analisado: ").strip()
