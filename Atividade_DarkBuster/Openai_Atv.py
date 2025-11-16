@@ -8,7 +8,7 @@ import json
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
-    print("❌ ERRO: OPENAI_API_KEY não encontrada!")
+    print("ERRO: OPENAI_API_KEY não encontrada!")
     exit(1)
 
 modelo = "gpt-4.1-mini"
@@ -28,7 +28,7 @@ def obter_html(url):
         resposta.raise_for_status()
         return resposta.text
     except Exception as e:
-        print(f"❌ Erro ao acessar {url}: {e}")
+        print(f"Erro ao acessar {url}: {e}")
         return None
 
 
@@ -51,7 +51,7 @@ def analisar_site(url):
         print(json.dumps(fallback, indent=2, ensure_ascii=False))
         return
 
-    print(f"✅ HTML obtido com sucesso ({len(html)} caracteres).")
+    print(f"HTML obtido com sucesso ({len(html)} caracteres).")
 
     # Prompt no padrão exigido pelo PDF
     prompt = f"""
@@ -96,7 +96,6 @@ HTML analisado:
         print("Status da OpenAI:", response.status_code)
 
         data = response.json()
-        print("\nResposta bruta:\n", data)
 
         # ===============================
         # TRATAMENTO DE RATE LIMIT (429)
@@ -132,21 +131,21 @@ HTML analisado:
         if "choices" in data:
             texto = data["choices"][0]["message"]["content"]
 
-            print("\n🧠 JSON final:\n")
+            print("\nJSON final:\n")
             print(texto)
 
             # Verifica se o JSON é válido
             try:
                 json.loads(texto)
-                print("\n✔ JSON válido!")
+                print("\nJSON válido!")
             except:
-                print("\n⚠ JSON inválido (IA pode ter quebrado o formato).")
+                print("\nJSON inválido (IA pode ter quebrado o formato).")
 
         else:
-            print("⚠ Resposta fora do padrão.")
+            print("Resposta fora do padrão.")
 
     except Exception as e:
-        print("❌ ERRO ao enviar para OpenAI:", e)
+        print("ERRO ao enviar para OpenAI:", e)
         fallback = {
             "manipulative_design": False,
             "patterns_detected": [],

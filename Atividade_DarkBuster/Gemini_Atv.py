@@ -8,7 +8,7 @@ import json
 api_key = os.getenv("GOOGLE_API_KEY")
 
 if not api_key:
-    print("❌ ERRO: GOOGLE_API_KEY não encontrada!")
+    print("ERRO: GOOGLE_API_KEY não encontrada!")
     exit(1)
 
 modelo = "gemini-2.5-flash"
@@ -45,7 +45,7 @@ def analisar_site(url):
         print(json.dumps(fallback, indent=2, ensure_ascii=False))
         return
 
-    print(f"✅ HTML obtido com sucesso ({len(html)} caracteres).")
+    print(f"HTML obtido com sucesso ({len(html)} caracteres).")
 
     # Prompt no padrão exigido
     prompt = f"""
@@ -92,7 +92,6 @@ HTML analisado:
         print("Status da Gemini:", response.status_code)
 
         data = response.json()
-        print("\nResposta bruta:\n", data)
 
         # ===============================
         # TRATAMENTO DE RATE LIMIT (429)
@@ -128,7 +127,7 @@ HTML analisado:
         if "candidates" in data:
             texto = data["candidates"][0]["content"]["parts"][0]["text"]
 
-            print("\n🧠 JSON final:\n")
+            print("\nJSON final:\n")
             print(texto)
 
             # Verifica se o JSON é válido
@@ -136,10 +135,10 @@ HTML analisado:
                 json.loads(texto)
                 print("\n✔ JSON válido!")
             except:
-                print("\n⚠ JSON inválido (IA pode ter quebrado o formato).")
+                print("\nJSON inválido (IA pode ter quebrado o formato).")
 
         else:
-            print("⚠ Resposta fora do padrão.")
+            print("Resposta fora do padrão.")
             fallback = {
                 "manipulative_design": False,
                 "patterns_detected": [],
@@ -151,7 +150,7 @@ HTML analisado:
             print(json.dumps(fallback, indent=2, ensure_ascii=False))
 
     except Exception as e:
-        print("❌ ERRO ao enviar para Gemini:", e)
+        print("ERRO ao enviar para Gemini:", e)
         fallback = {
             "manipulative_design": False,
             "patterns_detected": [],
